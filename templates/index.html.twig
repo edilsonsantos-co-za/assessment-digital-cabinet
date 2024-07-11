@@ -1,5 +1,3 @@
-{# templates/tortoise/index.html.twig #}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,15 +10,30 @@
             margin-top: 20px;
             font-weight: bold;
         }
-
         .grid-container {
             margin-top: 20px;
+            position: relative;
         }
-
         #gridCanvas {
             border: 1px solid #000;
             width: 100%;
-            height: 100%;
+            height: 500px; /* Adjust height as needed */
+        }
+        .results-list {
+            margin-top: 20px;
+        }
+        .tortoise {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: yellow;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            color: black;
+            transition: all 0.3s ease;
         }
     </style>
 </head>
@@ -34,14 +47,21 @@
                         <h1>Tortoise Directions</h1>
                     </div>
                     <div class="card-body">
-                        {{ form_start(form) }}
-                        {{ form_row(form.directions) }}
-                        <div class="form-footer">
-                            {{ form_row(form.submit) }}
-                        </div>
-                        {{ form_end(form) }}
+                        <form id="directionForm">
+                            <div class="mb-3">
+                                <label for="directions" class="form-label">Enter Directions (F, R, L):</label>
+                                <input type="text" class="form-control" id="directions" name="directions" required>
+                            </div>
+                            <div class="form-footer">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                        </form>
                         <div class="result" id="result"></div>
                     </div>
+                </div>
+                <div class="results-list">
+                    <h2>Last Few Results</h2>
+                    <ul id="resultsList"></ul>
                 </div>
             </div>
             <div class="col-md-6">
@@ -52,6 +72,7 @@
                     <div class="card-body">
                         <div class="grid-container">
                             <canvas id="gridCanvas" width="500" height="500"></canvas>
+                            <div id="tortoiseIcon" class="tortoise">↑</div>
                         </div>
                     </div>
                 </div>
@@ -60,57 +81,81 @@
     </div>
 </div>
 
+<!-- Error Modal -->
+<div class="modal" id="errorModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Please enter directions before submitting.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://unpkg.com/@tabler/core@latest/dist/js/tabler.min.js"></script>
 <script>
-    document.getElementById('directionForm').addEventListener('submit', function (event) {
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+    const gridSize = 50;
+    const offsetX = canvas.width / 2;
+    const offsetY = canvas.height / 2;
+    const directions = ['N', 'E', 'S', 'W'];
+
+    // Initialize tortoise icon in the center
+    drawTortoise(0, 0, 0); // Starting at (0, 0) facing North
+
+    document.getElementById('directionForm').addEventListener('submit', function(event) {
         event.preventDefault();
-        const directions = document.getElementById('directions').value;
-        const result = calculateFinalPosition(directions);
+        const directionsInput = document.getElementById('directions').value.trim().toUpperCase();
+
+        // Check if directions input is empty
+        if (!directionsInput) {
+            // Show error modal
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            errorModal.show();
+            return;
+        }
+
+        const result = calculateFinalPosition(directionsInput);
         document.getElementById('result').innerText = `Final Position: (${result.x}, ${result.y}), Facing: ${result.direction}`;
         visualizeGrid(result.path);
+        addToResultsList(result);
+        animateTortoiseMovement(result);
     });
 
     function calculateFinalPosition(input) {
         let x = 0, y = 0;
-        const directions = ['N', 'E', 'S', 'W'];
         let currentDirectionIndex = 0;
-        const path = [{x: x, y: y}];
+        const path = [{ x: x, y: y }];
 
         for (let i = 0; i < input.length; i++) {
             const command = input[i];
             if (command === 'F') {
                 switch (directions[currentDirectionIndex]) {
-                    case 'N':
-                        y++;
-                        break;
-                    case 'E':
-                        x++;
-                        break;
-                    case 'S':
-                        y--;
-                        break;
-                    case 'W':
-                        x--;
-                        break;
+                    case 'N': y++; break;
+                    case 'E': x++; break;
+                    case 'S': y--; break;
+                    case 'W': x--; break;
                 }
-                path.push({x: x, y: y});
+                path.push({ x: x, y: y });
             } else if (command === 'R') {
                 currentDirectionIndex = (currentDirectionIndex + 1) % 4;
             } else if (command === 'L') {
                 currentDirectionIndex = (currentDirectionIndex + 3) % 4;
             }
         }
-        return {x, y, direction: directions[currentDirectionIndex], path: path};
+        return { x, y, direction: directions[currentDirectionIndex], path: path };
     }
 
     function visualizeGrid(path) {
-        const canvas = document.getElementById('gridCanvas');
-        const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        const gridSize = 50;
-        const offsetX = canvas.width / 2;
-        const offsetY = canvas.height / 2;
 
         // Draw grid lines
         ctx.strokeStyle = '#ddd';
@@ -150,10 +195,68 @@
 
         // Draw tortoise at the final position
         const finalPosition = path[path.length - 1];
-        ctx.fillStyle = 'yellow';
-        ctx.fillRect(offsetX + finalPosition.x * gridSize - gridSize / 2, offsetY - finalPosition.y * gridSize - gridSize / 2, gridSize, gridSize);
-        ctx.fillStyle = 'black';
-        ctx.fillText(finalPosition.direction, offsetX + finalPosition.x * gridSize - 10, offsetY - finalPosition.y * gridSize + 5);
+        drawTortoise(finalPosition.x, finalPosition.y, directions.indexOf(finalPosition.direction));
+    }
+
+    function drawTortoise(x, y, directionIndex) {
+        const tortoiseIcon = document.getElementById('tortoiseIcon');
+        tortoiseIcon.style.left = `${offsetX + x * gridSize}px`;
+        tortoiseIcon.style.top = `${offsetY - y * gridSize}px`;
+        tortoiseIcon.textContent = getTortoiseDirectionArrow(directionIndex);
+    }
+
+    function getTortoiseDirectionArrow(directionIndex) {
+        switch (directions[directionIndex]) {
+            case 'N': return '↑';
+            case 'E': return '→';
+            case 'S': return '↓';
+            case 'W': return '←';
+            default: return '';
+        }
+    }
+
+    function addToResultsList(result) {
+        const resultsList = document.getElementById('resultsList');
+        const listItem = document.createElement('li');
+        listItem.textContent = `Final Position: (${result.x}, ${result.y}), Facing: ${result.direction}`;
+        resultsList.appendChild(listItem);
+    }
+
+    function animateTortoiseMovement(result) {
+        const directionsInput = document.getElementById('directions').value.trim().toUpperCase();
+        const commands = directionsInput.split('');
+
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i >= commands.length) {
+                clearInterval(interval);
+                return;
+            }
+
+            const command = commands[i];
+            const directionIndex = directions.indexOf(result.direction);
+
+            drawTortoise(result.path[i].x, result.path[i].y, directionIndex);
+            highlightCurrentCommand(command);
+
+            i++;
+        }, 500); // Adjust animation speed as needed
+    }
+
+    function highlightCurrentCommand(command) {
+        const directionsInput = document.getElementById('directions');
+        const commands = directionsInput.value.trim().toUpperCase().split('');
+        const currentIndex = commands.indexOf(command);
+
+        const startPos = directionsInput.selectionStart;
+        const endPos = directionsInput.selectionEnd;
+
+        if (currentIndex !== -1) {
+            directionsInput.setSelectionRange(currentIndex, currentIndex + 1);
+            setTimeout(() => {
+                directionsInput.setSelectionRange(startPos, endPos);
+            }, 300); // Highlight duration
+        }
     }
 </script>
 
