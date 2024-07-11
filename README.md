@@ -13,9 +13,12 @@ With your help, Timmy can embark on this grand adventure. By inputting simple co
 
 Join Timmy in Tortoise Travels and help him become the greatest explorer Terra Turtlia has ever known!
 
-
 ## Getting Started
+### Using Symfony server
+1. Run `symfony serve` to start the symfony built in server
+2. Access your website at http://127.0.0.1:8000
 
+### Using Docker
 1. If not already done, [install Docker Compose](https://docs.docker.com/compose/install/) (v2.10+)
 2. Run `docker compose build --no-cache` to build fresh images
 3. Run `docker compose up --pull always -d --wait` to set up and start a fresh Symfony project
