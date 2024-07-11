@@ -12,3 +12,25 @@ With your help, Timmy can embark on this grand adventure. By inputting simple co
 - **Immersive Storyline:** Get lost in the enchanting tale of Timmy’s travels and be part of his legendary adventure.
 
 Join Timmy in Tortoise Travels and help him become the greatest explorer Terra Turtlia has ever known!
+
+
+## Getting Started
+
+1. If not already done, [install Docker Compose](https://docs.docker.com/compose/install/) (v2.10+)
+2. Run `docker compose build --no-cache` to build fresh images
+3. Run `docker compose up --pull always -d --wait` to set up and start a fresh Symfony project
+4. Open `https://localhost` in your favorite web browser and [accept the auto-generated TLS certificate](https://stackoverflow.com/a/15076602/1352334)
+5. Run `docker compose down --remove-orphans` to stop the Docker containers.
+
+## Features
+
+* Production, development and CI ready
+* Just 1 service by default
+* Blazing-fast performance thanks to [the worker mode of FrankenPHP](https://github.com/dunglas/frankenphp/blob/main/docs/worker.md) (automatically enabled in prod mode)
+* [Installation of extra Docker Compose services](docs/extra-services.md) with Symfony Flex
+* Automatic HTTPS (in dev and prod)
+* HTTP/3 and [Early Hints](https://symfony.com/blog/new-in-symfony-6-3-early-hints) support
+* Real-time messaging thanks to a built-in [Mercure hub](https://symfony.com/doc/current/mercure.html)
+* [Vulcain](https://vulcain.rocks) support
+* Native [XDebug](docs/xdebug.md) integration
+* Super-readable configuration
