@@ -16,7 +16,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     env:
-      SERVER_NAME: localhost
+      SERVER_NAME: http://localhost
     steps:
       -
         name: Checkout
