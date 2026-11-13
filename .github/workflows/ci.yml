@@ -20,6 +20,10 @@ jobs:
         name: Checkout
         uses: actions/checkout@v4
       -
+        name: Configure CI environment
+        run: |
+          printf '%s\n' 'APP_ENV=dev' 'APP_SECRET=ci-only' 'MESSENGER_TRANSPORT_DSN=doctrine://default' 'MAILER_DSN=null://null' > .env
+      -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       -
