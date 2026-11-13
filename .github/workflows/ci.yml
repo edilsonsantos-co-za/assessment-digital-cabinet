@@ -39,6 +39,10 @@ jobs:
         name: Start services
         run: docker compose up --wait --no-build
       -
+        name: Show service logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      -
         name: Check HTTP reachability
         run: curl -v --fail-with-body http://localhost
       -
