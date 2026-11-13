@@ -42,6 +42,19 @@ jobs:
             *.cache-from=type=gha,scope=refs/heads/main
             *.cache-to=type=gha,scope=${{github.ref}},mode=max
       -
+        name: Check Mercure configuration
+        run: |
+          docker compose run --rm --no-deps -T --entrypoint php php -d zend.assertions=1 -d assert.exception=1 tests/mercure-transport.php
+          docker compose run --rm --no-deps -T --entrypoint sh \
+            -e 'SERVER_NAME=localhost, php:80' \
+            -e 'MERCURE_TRANSPORT_URL=bolt:///data/ci-custom.db?size=42' php -c '
+              set -e
+              MERCURE_TRANSPORT_DIRECTIVE="$(php /usr/local/bin/mercure-transport.php)"
+              export MERCURE_TRANSPORT_DIRECTIVE
+              frankenphp validate --config /etc/caddy/Caddyfile
+              test -f /data/ci-custom.db
+            '
+      -
         name: Start services
         run: docker compose up --wait --no-build
       -

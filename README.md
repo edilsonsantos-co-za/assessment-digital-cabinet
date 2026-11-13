@@ -25,6 +25,10 @@ Join Timmy in Tortoise Travels and help him become the greatest explorer Terra T
 4. Open `https://localhost` in your favorite web browser and [accept the auto-generated TLS certificate](https://stackoverflow.com/a/15076602/1352334)
 5. Run `docker compose down --remove-orphans` to stop the Docker containers.
 
+Mercure uses `/data/mercure.db` by default. When passed to the container,
+`MERCURE_TRANSPORT_URL` still accepts the Bolt and local transport URLs; Bolt's
+`bucket_name`, `size`, and `cleanup_frequency` options are supported.
+
 ## Features
 
 * Production, development and CI ready

@@ -22,10 +22,8 @@
 	encode zstd br gzip
 
 	mercure {
-		# Transport to use (default to Bolt)
-		transport bolt {
-			path {$MERCURE_TRANSPORT_PATH:/data/mercure.db}
-		}
+		name app
+		{$MERCURE_TRANSPORT_DIRECTIVE:transport bolt}
 		protocol_version_compatibility 8
 		# Publisher JWT key
 		publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
